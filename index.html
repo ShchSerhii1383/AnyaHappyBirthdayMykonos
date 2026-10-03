@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Secret Journal · Mykonos Edition</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- #stage: letterboxed 16:9 frame. Everything is sized relative to it. -->
+<div id="stage" data-state="INTRO">
+
+  <!-- Top-down Mykonos table (raster asset, never redrawn in CSS) -->
+  <div id="table-bg" aria-hidden="true"></div>
+
+  <!-- #journal: the single coordinate system for the whole UI.
+       It has the exact aspect ratio of the journal artwork (all three
+       spreads share it), and every child is positioned in % of this box,
+       so text, photos and buttons stay locked to the artwork at any size.
+
+       data-spread = "quiz" | "memory" | "final" decides which layers show.
+       Layer order (bottom → top): photos/certificate → journal artwork →
+       HTML text & controls → page-turn → closed journal. -->
+  <div id="journal" data-spread="quiz">
+
+    <!-- ===== CONTENT UNDER THE ARTWORK (seen through its transparent windows) ===== -->
+    <div class="spread-content spread-memory-content" aria-hidden="true">
+      <img class="memory-photo photo-01" src="assets/photos/Mykonos_Photo_01.jpg" alt="" />
+      <img class="memory-photo photo-02" src="assets/photos/Mykonos_Photo_02.jpg" alt="" />
+      <img class="memory-photo photo-03" src="assets/photos/Mykonos_Photo_03.jpg" alt="" />
+    </div>
+    <div class="spread-content spread-final-content" aria-hidden="true">
+      <div class="certificate-backing"></div>
+      <img class="certificate-img" id="certificate-img" src="assets/ui/Brocard_Certificate.png" alt="" />
+    </div>
+
+    <!-- ===== JOURNAL ARTWORK — swapped per spread by game.js ===== -->
+    <img class="journal-art" id="journal-art" src="assets/ui/Open_Journal.png" alt="" aria-hidden="true" />
+
+    <!-- ===== QUIZ SPREAD ===== -->
+    <div class="spread-layer spread-quiz">
+
+    <!-- LEFT PAGE -->
+    <div class="zone question-area" id="question-area">
+      <p class="final-heading" id="final-heading"></p>
+      <p class="question-text" id="question-text"></p>
+    </div>
+    <div class="zone feedback-area" id="feedback-area" aria-live="polite"></div>
+
+    <!-- RIGHT PAGE: 8 stamp slots (drawn in the artwork) + 4 answer zones -->
+    <div class="progress-stamps" id="progress-stamps" aria-label="Progress"></div>
+
+    <div class="answer-grid" id="answer-grid">
+      <button type="button" class="zone answer answer-1" data-index="0"><span class="answer-text"></span><span class="answer-check" aria-hidden="true">✓</span></button>
+      <button type="button" class="zone answer answer-2" data-index="1"><span class="answer-text"></span><span class="answer-check" aria-hidden="true">✓</span></button>
+      <button type="button" class="zone answer answer-3" data-index="2"><span class="answer-text"></span><span class="answer-check" aria-hidden="true">✓</span></button>
+      <button type="button" class="zone answer answer-4" data-index="3"><span class="answer-text"></span><span class="answer-check" aria-hidden="true">✓</span></button>
+    </div>
+
+    <!-- Big OWNER CONFIRMED stamp (Q9 only) -->
+    <div class="owner-stamp" id="owner-stamp" aria-hidden="true">
+      <span class="owner-stamp-crown">♛</span>
+      <span class="owner-stamp-text" id="owner-stamp-text">OWNER CONFIRMED</span>
+      <span class="owner-stamp-sub">Mykonos Edition</span>
+    </div>
+    </div><!-- /.spread-quiz -->
+
+    <!-- ===== MEMORY SPREAD: the photos live under the artwork (above);
+         here is only the control that turns to the final spread. ===== -->
+    <div class="spread-layer spread-memory">
+      <!-- The whole right page turns on click; the tab is the visible hint. -->
+      <button type="button" class="memory-next-area" id="memory-next-area" tabindex="-1" aria-hidden="true"></button>
+      <button type="button" class="memory-next-tab" id="memory-next-tab"><span id="memory-next-label">ДАЛІ</span> →</button>
+    </div>
+
+    <!-- ===== FINAL SPREAD: wish on the left page, return tag under the
+         certificate. "8/8 VERIFIED" is already painted in the artwork. ===== -->
+    <div class="spread-layer spread-final">
+      <div class="final-wish" id="final-wish">
+        <p class="wish-line wish-opening" id="wish-opening"></p>
+        <p class="wish-line wish-body"    id="wish-body"></p>
+        <p class="wish-line wish-accent"  id="wish-accent"></p>
+        <p class="wish-line wish-closing" id="wish-closing"></p>
+      </div>
+      <button type="button" class="return-tag" id="btn-return"><span class="return-tag-hole" aria-hidden="true"></span><span id="return-label">ПОВЕРНУТИСЯ НА МАПУ</span></button>
+    </div>
+
+    <!-- Previous spread's artwork, clipped to the left page while the page
+         turns, so the old left page stays put until the sheet lands on it. -->
+    <img class="journal-art-old" id="journal-art-old" alt="" aria-hidden="true" />
+
+    <!-- Page-turn sheet: a copy of the right page (front) and left page
+         (back) that swings over the spine. Built from the same artwork,
+         so it matches the book exactly. -->
+    <div class="page-flip" id="page-flip" aria-hidden="true">
+      <div class="page-face page-front"></div>
+      <div class="page-face page-back"></div>
+    </div>
+
+    <!-- Closed journal: sits on the table until clicked, its cover then
+         swings open around the spine. -->
+    <button type="button" class="journal-closed" id="journal-closed" aria-label="Відкрити таємний журнал">
+      <img src="assets/ui/Close_Journal.png" alt="The Secret Journal of the Shopping Goddess &amp; Traveller" />
+      <span class="lock-glint" aria-hidden="true"></span>
+    </button>
+  </div>
+
+  <p class="hint" id="hint" aria-hidden="true">натисни на журнал</p>
+</div>
+
+<!-- Optional local sounds. Missing files are ignored by game.js. -->
+<audio id="sfx-unlock"      src="assets/audio/unlock.mp3"      preload="auto"></audio>
+<audio id="sfx-open"        src="assets/audio/page-open.mp3"   preload="auto"></audio>
+<audio id="sfx-writing"     src="assets/audio/writing.mp3"     preload="auto"></audio>
+<audio id="sfx-page-turn"   src="assets/audio/page-turn.mp3"   preload="auto"></audio>
+<audio id="sfx-wrong"       src="assets/audio/wrong.mp3"       preload="auto"></audio>
+<audio id="sfx-correct"     src="assets/audio/correct.mp3"     preload="auto"></audio>
+<audio id="sfx-stamp"       src="assets/audio/stamp.mp3"       preload="auto"></audio>
+<audio id="sfx-final-stamp" src="assets/audio/final-stamp.mp3" preload="auto"></audio>
+
+<script src="js/questions.js"></script>
+<script src="js/stamps.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

@@ -1,0 +1,654 @@
+/* =========================================================================
+   THE SECRET JOURNAL — styles
+   -------------------------------------------------------------------------
+   Sizing model (read this first):
+   1. #stage is a letterboxed 16:9 frame (container-type: size).
+   2. #journal lives inside it, has the exact aspect ratio of the journal
+      artwork (all three spreads are 1672×941), and is itself a
+      container (inline-size).
+   3. Every UI element inside #journal is positioned in % of #journal
+      and sized/typeset in cqw — which, inside #journal, means "% of the
+      journal's width". So text, buttons and stamps scale together with
+      the artwork and cannot drift off it at any window size.
+   ========================================================================= */
+
+@font-face {
+  font-family: "Caveat";
+  src: url("../assets/fonts/caveat-cyrillic-500-normal.woff2") format("woff2");
+  font-weight: 500;
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Caveat";
+  src: url("../assets/fonts/caveat-latin-500-normal.woff2") format("woff2");
+  font-weight: 500;
+}
+@font-face {
+  font-family: "Caveat";
+  src: url("../assets/fonts/caveat-cyrillic-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Caveat";
+  src: url("../assets/fonts/caveat-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+}
+/* Refined serif for the final wish (Cormorant Garamond, OFL, has Cyrillic). */
+@font-face { font-family: "Cormorant"; font-weight: 500; font-style: normal;
+  src: url("../assets/fonts/cormorant-garamond-cyrillic-500-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Cormorant"; font-weight: 500; font-style: normal;
+  src: url("../assets/fonts/cormorant-garamond-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant"; font-weight: 600; font-style: normal;
+  src: url("../assets/fonts/cormorant-garamond-cyrillic-600-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Cormorant"; font-weight: 600; font-style: normal;
+  src: url("../assets/fonts/cormorant-garamond-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant"; font-weight: 500; font-style: italic;
+  src: url("../assets/fonts/cormorant-garamond-cyrillic-500-italic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Cormorant"; font-weight: 500; font-style: italic;
+  src: url("../assets/fonts/cormorant-garamond-latin-500-italic.woff2") format("woff2"); }
+
+:root {
+  --ink:        #1d2f6f;   /* dark cobalt / blue-black ink */
+  --ink-soft:   #3a4f96;
+  --cobalt:     #1f47a8;
+  --gold:       #c9962e;
+  --gold-soft:  rgba(214, 170, 72, 0.55);
+  --fuchsia:    #d6337f;
+  --paper:      #fae9cf;   /* sampled from the journal artwork */
+  --turquoise:  rgba(42, 170, 190, 0.55);
+
+  --font-hand:  "Caveat", "Segoe Print", "Comic Sans MS", cursive;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-wish:  "Cormorant", Georgia, "Times New Roman", serif;
+
+  /* ===== PHOTO FRAMING — change these to re-crop a photo =====
+     x / y = which part of the photo stays visible inside its frame.
+     0% = left / top edge, 50% = centre, 100% = right / bottom edge. */
+  --photo-01-x: 50%;  --photo-01-y: 22%;   /* big, left page      */
+  --photo-02-x: 50%;  --photo-02-y: 50%;   /* small, right top    */
+  --photo-03-x: 50%;  --photo-03-y: 76%;   /* right page, bottom  */
+
+  /* ===== LAYERS inside #journal (bottom → top) ===== */
+  --z-content:   1;   /* photos / certificate, seen through the art's windows */
+  --z-art:       2;   /* journal artwork                                      */
+  --z-overlay:   3;   /* HTML text and controls on the pages                  */
+  --z-art-old:   4;   /* previous spread's left page during a page turn       */
+  --z-page-turn: 5;   /* the turning sheet                                    */
+  --z-closed:    6;   /* closed journal (before opening)                      */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #2a1f14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- 16:9 stage ---------- */
+#stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  container-type: size;
+}
+@media (min-aspect-ratio: 16/9) {
+  #stage { width: calc(100vh * 16 / 9); height: 100vh; }
+}
+@media (max-aspect-ratio: 16/9) {
+  #stage { width: 100vw; height: calc(100vw * 9 / 16); }
+}
+
+#table-bg {
+  position: absolute;
+  inset: 0;
+  background: url("../assets/ui/Background.png") center / cover no-repeat;
+  transition: filter 0.9s ease, transform 0.9s ease;
+}
+/* Once the journal is open the table recedes slightly so the pages read first. */
+#stage.journal-is-open #table-bg {
+  filter: brightness(0.9) saturate(0.95);
+  transform: scale(1.03);
+}
+
+/* ---------- journal coordinate system ---------- */
+#journal {
+  position: absolute;
+  left: 4cqw;
+  top: 4cqh;
+  width: 92cqw;
+  aspect-ratio: 1672 / 941;
+  container-type: inline-size;
+}
+
+.journal-art {
+  position: absolute;
+  z-index: var(--z-art);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transform: scale(0.97);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  filter: drop-shadow(0 1.2cqw 1.4cqw rgba(60, 35, 10, 0.35));
+  pointer-events: none;
+}
+#journal.is-open .journal-art { opacity: 1; transform: scale(1); }
+
+/* Each spread's layers only exist while that spread is open. */
+.spread-content { position: absolute; inset: 0; z-index: var(--z-content); pointer-events: none; }
+.spread-layer   { position: absolute; inset: 0; z-index: var(--z-overlay); pointer-events: none; }
+.spread-layer > * { pointer-events: auto; }
+.spread-memory-content, .spread-memory,
+.spread-final-content,  .spread-final { display: none; }
+#journal[data-spread="quiz"]   .spread-quiz,
+#journal[data-spread="memory"] .spread-memory-content,
+#journal[data-spread="memory"] .spread-memory,
+#journal[data-spread="final"]  .spread-final-content,
+#journal[data-spread="final"]  .spread-final { display: block; }
+#journal:not([data-spread="quiz"]) .spread-quiz { display: none; }
+
+/* Left page of the previous spread, held still while a page turns. */
+.journal-art-old {
+  position: absolute;
+  z-index: var(--z-art-old);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: inset(0 50% 0 0);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.zone { position: absolute; }
+
+/* ---------- LEFT PAGE: question ----------
+   Safe area = inside the gold frame, above the windmill illustration. */
+.question-area {
+  left: 14.8%;
+  top: 27%;
+  width: 31.5%;
+  height: 20.5%;
+  padding: 0 0.8cqw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  color: var(--ink);
+  overflow: hidden;
+}
+.final-heading {
+  display: none;
+  margin: 0 0 0.6cqw;
+  font-family: var(--font-serif);
+  font-size: 1.15cqw;
+  letter-spacing: 0.25em;
+  color: var(--fuchsia);
+}
+.final-heading.visible { display: block; }
+.question-text {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-weight: 700;
+  line-height: 1.12;
+  /* font-size is set by fitText() in game.js */
+}
+
+/* One word of "ink". Revealed left-to-right by a clip-path animation. */
+.ink-word {
+  display: inline-block;
+  clip-path: inset(-25% 100% -25% -8%);
+  white-space: pre;
+}
+.ink-word.written { clip-path: inset(-25% -8% -25% -8%); }
+
+/* ---------- LEFT PAGE: journal reply ---------- */
+.feedback-area {
+  left: 18%;
+  top: 48.6%;
+  width: 29%;
+  height: 8.6%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: 2.2cqw;
+  line-height: 1.05;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(0.3cqw);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.feedback-area.visible { opacity: 1; transform: translateY(0); }
+
+/* ---------- RIGHT PAGE: stamp slots ---------- */
+.progress-stamps { position: absolute; inset: 0; pointer-events: none; }
+.stamp-slot {
+  position: absolute;
+  width: 3.1%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  color: var(--cobalt);
+}
+.stamp-slot svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.stamp-slot .stamp-fill  { fill: var(--paper); }
+.stamp-slot .stamp-ring  { fill: none; stroke: currentColor; stroke-width: 2.2; }
+.stamp-slot .stamp-ring.thin { stroke-width: 0.9; opacity: 0.7; }
+.stamp-slot .stamp-icon  { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.stamp-slot .stamp-ink {
+  opacity: 0;
+  transform: rotate(var(--tilt, 0deg));
+  mix-blend-mode: multiply;
+}
+.stamp-slot.stamped .stamp-ink { opacity: 0.92; }
+
+/* ---------- RIGHT PAGE: answers ----------
+   Each button covers exactly one drawn card. The card itself is in the
+   artwork, so the button background stays transparent. */
+.answer {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 1.1cqw;
+  color: var(--ink);
+  font-family: var(--font-hand);
+  font-weight: 700;
+  line-height: 1.08;
+  opacity: 0;
+  transition: transform 0.2s ease, box-shadow 0.25s ease, opacity 0.35s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.answer-1 { left: 52.6%; top: 22.6%; width: 16.5%; height: 25.3%; }
+.answer-2 { left: 70.4%; top: 22.4%; width: 17.4%; height: 24.8%; }
+.answer-3 { left: 52.6%; top: 49.5%; width: 16.9%; height: 25.3%; }
+.answer-4 { left: 70.9%; top: 49.3%; width: 17.6%; height: 25%; }
+
+/* Inner safe area: keeps text clear of the painted corner ornaments. */
+.answer-text {
+  position: absolute;
+  inset: 17% 15%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  /* font-size is set by fitText() in game.js */
+}
+
+#journal.answers-visible .answer { opacity: 1; }
+.answer.is-locked { pointer-events: none; }
+
+.answer:hover:not(.is-locked),
+.answer:focus-visible:not(.is-locked) {
+  transform: translateY(-0.18cqw);
+  box-shadow: 0 0 0 0.12cqw var(--turquoise), 0 0.5cqw 1cqw rgba(42, 120, 150, 0.18);
+}
+.answer:focus-visible { outline: 0.14cqw dashed var(--cobalt); outline-offset: -0.5cqw; }
+
+.answer.is-correct {
+  box-shadow: inset 0 0 0 0.22cqw rgba(201, 150, 46, 0.85), 0 0 1.6cqw rgba(214, 170, 72, 0.55);
+  animation: answer-lift 0.45s ease;
+}
+.answer.is-wrong {
+  box-shadow: inset 0 0 0 0.2cqw rgba(214, 51, 127, 0.7);
+  animation: answer-shake 0.38s ease;
+}
+@keyframes answer-lift {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-0.35cqw); }
+}
+@keyframes answer-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-0.3cqw); }
+  60% { transform: translateX(0.25cqw); }
+}
+
+.answer-check {
+  position: absolute;
+  right: 3.5%;          /* the free margin between the corner ornaments */
+  top: 50%;
+  margin-top: -1.6cqw;
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: 2.8cqw;
+  line-height: 1;
+  color: #a8761a;
+  text-shadow: 0 0 0.4cqw rgba(255, 240, 200, 0.9);
+  opacity: 0;
+  transform: scale(0.6) rotate(-8deg);
+  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.answer.show-check .answer-check { opacity: 1; transform: scale(1) rotate(-8deg); }
+
+/* ---------- OWNER CONFIRMED stamp ---------- */
+.owner-stamp {
+  position: absolute;
+  left: 70.5%;
+  top: 48.5%;
+  padding: 0.9cqw 2.2cqw 1cqw;
+  white-space: nowrap;
+  line-height: 1.05;
+  transform: translate(-50%, -50%) rotate(-9deg) scale(1.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25cqw;
+  border: 0.38cqw solid var(--cobalt);
+  border-radius: 1cqw;
+  box-shadow: inset 0 0 0 0.35cqw rgba(250, 233, 207, 0.6), inset 0 0 0 0.5cqw var(--cobalt);
+  background: rgba(250, 233, 207, 0.45);
+  color: var(--cobalt);
+  font-family: var(--font-serif);
+  text-align: center;
+  mix-blend-mode: multiply;
+  opacity: 0;
+  pointer-events: none;
+}
+.owner-stamp-crown { font-size: 2.2cqw; line-height: 1; color: var(--gold); mix-blend-mode: normal; }
+.owner-stamp-text  { font-size: 2.9cqw; font-weight: bold; letter-spacing: 0.1em; }
+.owner-stamp-sub   { font-size: 0.95cqw; letter-spacing: 0.3em; text-transform: uppercase; }
+
+/* =========================================================================
+   MEMORY SPREAD — three photos behind the artwork's photo windows
+   Each photo box = the transparent window in Memory_Journal.png (measured
+   from its alpha channel) plus a small bleed, so the painted frame and
+   gold corners always overlap the photo edges.
+   ========================================================================= */
+.memory-photo {
+  position: absolute;
+  object-fit: cover;
+  opacity: 0;                       /* revealed one by one by game.js */
+}
+.memory-photo.is-revealed { opacity: 1; }
+.photo-01 { left: 19.25%; top: 11.7%; width: 29.05%; height: 67.7%;   /* thin left bleed keeps the sign's first letter */
+            object-position: var(--photo-01-x) var(--photo-01-y); }
+.photo-02 { left: 58.8%; top: 8%;    width: 18.9%; height: 35.1%;
+            object-position: var(--photo-02-x) var(--photo-02-y); }
+.photo-03 { left: 58.9%; top: 48.6%; width: 20.9%; height: 34%;
+            object-position: var(--photo-03-x) var(--photo-03-y); }
+
+/* "Turn the page" — the whole right page is clickable, and a small cobalt
+   tab sticks out of the book's edge as the visible hint. */
+.memory-next-area {
+  position: absolute;
+  left: 51%; top: 6%; width: 45%; height: 83%;
+  border: none; background: transparent; padding: 0;
+  cursor: pointer;
+  visibility: hidden;
+}
+.memory-next-tab {
+  position: absolute;
+  left: 97.6%; top: 43%;
+  padding: 1.1cqw 0.9cqw 1.1cqw 1.2cqw;
+  border: 0.12cqw solid var(--gold);
+  border-left: none;
+  border-radius: 0 0.9cqw 0.9cqw 0;
+  background: linear-gradient(90deg, #17388a, var(--cobalt));
+  box-shadow: 0.3cqw 0.4cqw 0.9cqw rgba(40, 25, 10, 0.3);
+  color: #fff6e4;
+  font-family: var(--font-serif);
+  font-size: 1.05cqw;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, transform 0.25s ease;
+}
+.memory-next-tab.visible,
+.memory-next-tab.visible ~ .memory-next-area { visibility: visible; }
+.memory-next-tab.visible { opacity: 1; animation: tab-nudge 2.6s ease-in-out 1s infinite; }
+.memory-next-tab:hover, .memory-next-tab:focus-visible { transform: translateX(0.4cqw); animation: none; }
+.memory-next-tab:focus-visible { outline: 0.14cqw dashed var(--gold); outline-offset: 0.3cqw; }
+@keyframes tab-nudge {
+  0%, 70%, 100% { transform: translateX(0); }
+  80%           { transform: translateX(0.5cqw); }
+}
+
+/* =========================================================================
+   FINAL SPREAD — wish (left page) + Brocard certificate (right window)
+   ========================================================================= */
+/* Paper behind the certificate so its transparent corners never show the
+   table through the window. Colour sampled from Final_Journal.png. */
+.certificate-backing {
+  position: absolute;
+  left: 52.9%; top: 27.3%; width: 39.6%; height: 36.5%;
+  background: #fdeace;
+}
+/* The window is x 53.65–91.7%, y 28.3–62.8%. The certificate is fitted
+   inside it with a small inset (contain, never cropped) so the gold frame
+   corners only touch its decorative corners, not its text. */
+.certificate-img {
+  position: absolute;
+  left: 55%; top: 29.9%; width: 35.3%; height: 31.3%;
+  object-fit: contain;
+  opacity: 0;
+}
+.certificate-img.is-revealed { opacity: 1; }
+
+/* Safe area on the left page: under the crown ornament, right of the
+   windmill illustration, above the 8/8 VERIFIED stamp, left of the spine. */
+.final-wish {
+  position: absolute;
+  left: 21%; top: 27.8%; width: 25.8%; height: 33.5%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(1.05cqw * var(--wish-scale));
+  text-align: center;
+  color: var(--ink);
+  pointer-events: none;
+  /* fitWish() in game.js lowers this until the whole wish fits the page */
+  --wish-scale: 1;
+}
+.wish-line {
+  margin: 0;
+  white-space: pre;                /* breaks only where questions.js has \n */
+  opacity: 0;
+}
+.wish-line.is-revealed { opacity: 1; }
+.wish-opening { font-family: var(--font-wish); font-style: italic; font-weight: 500; font-size: calc(1.7cqw * var(--wish-scale)); line-height: 1.2; color: var(--ink-soft); }
+.wish-body    { font-family: var(--font-wish); font-weight: 500; font-size: calc(1.7cqw * var(--wish-scale)); line-height: 1.25; }
+.wish-accent  {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: calc(2.6cqw * var(--wish-scale));
+  line-height: 1.1;
+  color: var(--cobalt);
+  padding-bottom: calc(0.35cqw * var(--wish-scale));
+  /* a thin champagne-gold underline, the only gold on the page text */
+  background: linear-gradient(90deg, transparent, var(--gold-soft) 20%, var(--gold-soft) 80%, transparent) bottom / 100% 0.1cqw no-repeat;
+}
+.wish-closing { font-family: var(--font-wish); font-style: italic; font-weight: 500; font-size: calc(1.35cqw * var(--wish-scale)); line-height: 1.25; color: var(--ink-soft); }
+
+/* Return tag: a cobalt travel luggage tag with an eyelet, on the gold rule
+   under the certificate. Not a rectangular web button. */
+.return-tag {
+  position: absolute;
+  left: 72.7%; top: 67.2%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.8cqw;
+  padding: 0.75cqw 1.6cqw 0.75cqw 2.3cqw;
+  border: 0.12cqw solid var(--gold);
+  background: linear-gradient(180deg, #2350b5, #183c90);
+  clip-path: polygon(1.3cqw 0, 100% 0, 100% 100%, 1.3cqw 100%, 0 50%);
+  color: #fff6e4;
+  font-family: var(--font-serif);
+  font-size: 0.98cqw;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: filter 0.2s ease;
+}
+.return-tag-hole {
+  width: 0.6cqw; height: 0.6cqw;
+  border-radius: 50%;
+  background: #fdeace;
+  box-shadow: inset 0 0 0 0.1cqw var(--gold);
+}
+.return-tag.is-revealed { opacity: 1; visibility: visible; }
+.return-tag:hover, .return-tag:focus-visible { filter: brightness(1.12); }
+.return-tag:focus-visible { outline: 0.14cqw dashed var(--gold); outline-offset: 0.4cqw; }
+
+/* ---------- page-turn sheet ----------
+   Region = the right page (x 50.3%–90%, y 4%–88.5% of the journal).
+   Each face shows a crop of Open_Journal.png via an oversized ::before,
+   so the sheet is pixel-identical to the page it lifts off. */
+.page-flip {
+  --x: 50.3;  --w: 39.7;  --y: 4;  --h: 84.5;
+  /* --front-art / --back-art are set from game.js as absolute URLs:
+     a relative url() inside a custom property would resolve against the
+     page, not this stylesheet, so it's safer to build them in JS. */
+  position: absolute;
+  z-index: var(--z-page-turn);
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  width: calc(var(--w) * 1%);
+  height: calc(var(--h) * 1%);
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  visibility: hidden;
+  pointer-events: none;
+}
+.page-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
+.page-face::before {
+  content: "";
+  position: absolute;
+  width: calc(100% * 100 / var(--w));
+  height: calc(100% * 100 / var(--h));
+  top: calc(-100% * var(--y) / var(--h));
+  background: var(--face-art, url("../assets/ui/Open_Journal.png")) 0 0 / 100% 100% no-repeat;
+}
+/* game.js sets --front-art (spread being left) and --back-art (spread
+   being opened) before each turn. */
+.page-front { --face-art: var(--front-art); }
+.page-back  { --face-art: var(--back-art); }
+.page-front::before { left: calc(-100% * var(--x) / var(--w)); }
+/* Back face = the matching strip of the left page, mirrored into place. */
+.page-back { transform: rotateY(180deg); }
+/* After a 180° swing around the spine (x = 50.3%) the sheet covers
+   x 10.6%–50.3%, so the back face shows that strip of the left page. */
+.page-back::before { left: calc(-100% * 10.6 / var(--w)); }
+/* Moving shadow that sells the curl without real 3D geometry. */
+.page-face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(80, 50, 20, 0.28), rgba(80, 50, 20, 0) 45%);
+  opacity: 0;   /* animated from game.js turnPage() */
+}
+
+/* ---------- closed journal ---------- */
+.journal-closed {
+  position: absolute;
+  z-index: var(--z-closed);
+  left: 24.7%;        /* centred on the table; openJournal() slides it so the */
+  top: 13%;           /* spine lands on the open spread's spine (left 44.4%)  */
+  width: 50.6%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transform-origin: 11% 50%;   /* the spine */
+  animation: closed-idle 4.5s ease-in-out infinite;
+  transition: filter 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.journal-closed img {
+  display: block;
+  width: 100%;
+  filter: drop-shadow(0 1.3cqw 1.2cqw rgba(60, 35, 10, 0.4));
+  transition: transform 0.25s ease;
+}
+.journal-closed:hover img,
+.journal-closed:focus-visible img { transform: scale(1.03) rotate(-0.4deg); }
+.journal-closed:focus-visible { outline: 0.15cqw dashed var(--cobalt); outline-offset: 0.6cqw; }
+.journal-closed.is-busy { animation: none; pointer-events: none; }
+@keyframes closed-idle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-0.25%) rotate(0.5deg); }
+}
+
+/* Soft gold glint over the lock (position read off Close_Journal.png). */
+.lock-glint {
+  position: absolute;
+  left: 78.5%;
+  top: 35.5%;
+  width: 11%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.4);
+  background: radial-gradient(circle, rgba(255, 244, 200, 0.95) 0%, rgba(255, 215, 120, 0.4) 35%, transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  animation: lock-hint 3.6s ease-in-out 1.2s infinite;
+}
+@keyframes lock-hint {
+  0%, 78%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  86%           { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
+}
+
+.hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4.5cqh;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: 2.4cqw;
+  color: var(--ink);
+  text-shadow: 0 0 0.6cqw rgba(255, 248, 232, 0.95);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.hint.visible { opacity: 0.85; }
+
+/* ---------- debug view (index.html?debug) ---------- */
+#stage.debug .zone,
+#stage.debug .answer-text,
+#stage.debug .stamp-slot { outline: 1px dashed rgba(255, 0, 80, 0.8); }
+#stage.debug .answer-text { outline-color: rgba(0, 140, 255, 0.9); }
+#stage.debug .memory-photo,
+#stage.debug .certificate-img,
+#stage.debug .final-wish { outline: 2px dashed rgba(255, 0, 80, 0.85); outline-offset: -2px; }
+
+/* ---------- reduced motion ----------
+   No page flips, cover swings, idle floating or shakes; JS also swaps the
+   ink reveal for a simple fade. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    /* Instant, not merely short: a forced duration would also apply to
+       elements whose transition-property defaults to "all", animating
+       font-size and breaking fitText() measurements. */
+    transition-duration: 0.001ms !important;
+  }
+}
