@@ -8,7 +8,7 @@
 
 
 /* -------------------------------------------------------------------------
-   QUESTION BANK — 32 questions
+   QUESTION BANK — 56 questions
 
    ЯК РЕДАГУВАТИ (коротко):
    • Кожне питання — окремий блок { ... } між фігурними дужками.
@@ -197,6 +197,133 @@ const QUESTION_BANK = [
     question: "Яке найкраще місце для фото на Міконосі?",
     answers: ["Парковка біля порту", "Аеропорт", "Номер готелю", "Маленька Венеція на заході сонця"],
     correct: 3
+  },
+
+  /* ---------- FROM THE EXPLORER'S JOURNAL (shared with the Bazaar game) ----------
+     Imported from journalQuestions.js. The `story` lines of that file are
+     not used here: this journal has no place to show them. */
+  {
+    question: "У якій із цих країн сонце влітку може не заходити навіть поза Полярним колом?",
+    answers: ["Норвегія", "Австрія", "Швейцарія", "Чехія"],
+    correct: 0
+  },
+  {
+    // Original wording said "столиця", but Istanbul is not Turkey's capital.
+    question: "Яке з цих міст розташоване одразу на двох континентах?",
+    answers: ["Афіни", "Будапешт", "Стамбул", "Бухарест"],
+    correct: 2
+  },
+  {
+    question: "Яка країна має найбільшу кількість островів?",
+    answers: ["Хорватія", "Греція", "Норвегія", "Швеція"],
+    correct: 3
+  },
+  {
+    question: "У якій країні найдовший у Європі залізничний тунель?",
+    answers: ["Франція", "Швейцарія", "Австрія", "Італія"],
+    correct: 1
+  },
+  {
+    question: "Яке море НЕ омиває Італію?",
+    answers: ["Лігурійське", "Адріатичне", "Іонічне", "Егейське"],
+    correct: 3
+  },
+  {
+    question: "Яка країна має найбільше сусідів у Європі?",
+    answers: ["Німеччина", "Франція", "Польща", "Австрія"],
+    correct: 0
+  },
+  {
+    question: "Яка столиця знаходиться найближче до моря?",
+    answers: ["Мадрид", "Відень", "Лісабон", "Прага"],
+    correct: 2
+  },
+  {
+    question: "У якій країні розташований найвищий водоспад материкової Європи?",
+    answers: ["Ісландія", "Норвегія", "Австрія", "Словенія"],
+    correct: 1
+  },
+  {
+    // Source file marked "Посадка" (0) as correct; check-in closes first
+    // (about 40–60 min before departure, boarding about 15–20 min).
+    question: "Ти запізнюєшся на літак. Що закриється раніше?",
+    answers: ["Посадка", "Реєстрація", "Паспортний контроль", "Duty Free"],
+    correct: 1
+  },
+  {
+    question: "Який ряд місць у літаку найчастіше відсутній?",
+    answers: ["7", "9", "13", "21"],
+    correct: 2
+  },
+  {
+    question: "Яку валюту використовують у Швейцарії?",
+    answers: ["Євро", "Франк", "Крона", "Флорин"],
+    correct: 1
+  },
+  {
+    question: "Що найчастіше означає синій прапор на пляжі?",
+    answers: ["Пляж закритий", "Висока хвиля", "Вода відповідає високим стандартам чистоти", "Заборонено купатися"],
+    correct: 2
+  },
+  {
+    question: "У якій країні найчастіше можна побачити дорожні знаки одразу двома мовами?",
+    answers: ["Польща", "Бельгія", "Італія", "Данія"],
+    correct: 1
+  },
+  {
+    question: "Який документ найкраще тримати окремо від паспорта під час подорожі?",
+    answers: ["Квитанцію", "Банківську картку", "Копію паспорта", "Туристичний путівник"],
+    correct: 2
+  },
+  {
+    question: "Який бренд НЕ є італійським?",
+    answers: ["Prada", "Gucci", "Chanel", "Versace"],
+    correct: 2
+  },
+  {
+    question: "Який із цих брендів заснований у Швеції?",
+    answers: ["Zara", "Mango", "H&M", "Desigual"],
+    correct: 2
+  },
+  {
+    question: "У якій країні народився бренд Zara?",
+    answers: ["Франція", "Іспанія", "Португалія", "Італія"],
+    correct: 1
+  },
+  {
+    question: "Ти випадково замовила каву, нічого не зрозумівши з меню. Найімовірніше, ти зараз у:",
+    answers: ["Фінляндії", "Італії", "Норвегії", "Латвії"],
+    correct: 1
+  },
+  {
+    question: "У трьох подруг залишилося місце лише для одного сувеніра в ручній поклажі. Що найімовірніше повернеться додому цілим?",
+    answers: ["Скляна куля", "Магніт на холодильник", "Пляшка оливкової олії", "Керамічна чашка"],
+    correct: 1
+  },
+  {
+    question: "Який із цих брендів НЕ входить до французької групи LVMH?",
+    answers: ["Louis Vuitton", "Dior", "Givenchy", "Gucci"],
+    correct: 3
+  },
+  {
+    question: "Який бренд починав свою історію як майстерня з виготовлення шкіряних валіз і дорожніх скринь?",
+    answers: ["Chanel", "Louis Vuitton", "Prada", "Balenciaga"],
+    correct: 1
+  },
+  {
+    question: "Яке місто найбільш відоме своїм «Тижнем моди», який традиційно відкриває сезон показів?",
+    answers: ["Мілан", "Париж", "Лондон", "Нью-Йорк"],
+    correct: 3
+  },
+  {
+    question: "Який із цих брендів був заснований НЕ в Італії?",
+    answers: ["Fendi", "Bottega Veneta", "Max Mara", "Hermès"],
+    correct: 3
+  },
+  {
+    question: "У якій країні народився бренд Mango?",
+    answers: ["Франція", "Португалія", "Іспанія", "Італія"],
+    correct: 2
   }
 ];
 
@@ -279,6 +406,10 @@ const GAME_CONFIG = {
 
   // Stamp icon for each slot, in order (see js/stamps.js for the drawings).
   stampOrder: ["airplane", "bag", "sun", "compass", "heart", "heel", "wave", "crown"],
+
+  // Background melody volume: 0 = off, 1 = full. The file itself is
+  // assets/audio/mykonos-daylight-groove.mp3 — replace it to change the track.
+  musicVolume: 0.35,
 
   // Where "ПОВЕРНУТИСЯ НА МАПУ" leads. Leave empty ("") to keep the current
   // behaviour: the journal closes and waits on the table again. Set it to a

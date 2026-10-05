@@ -109,6 +109,10 @@
   <p class="hint" id="hint" aria-hidden="true">натисни на журнал</p>
 </div>
 
+<!-- Background melody: starts with the first click on the journal (browsers
+     block sound before a user gesture), loops, and fades out on return. -->
+<audio id="music" src="assets/audio/mykonos-daylight-groove.mp3" loop preload="auto"></audio>
+
 <!-- Optional local sounds. Missing files are ignored by game.js. -->
 <audio id="sfx-unlock"      src="assets/audio/unlock.mp3"      preload="auto"></audio>
 <audio id="sfx-open"        src="assets/audio/page-open.mp3"   preload="auto"></audio>

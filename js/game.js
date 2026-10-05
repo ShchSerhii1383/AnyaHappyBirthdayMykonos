@@ -159,6 +159,66 @@
   }
 
   /* ---------------------------------------------------------------------
+     BACKGROUND MUSIC — one looping track with soft fades.
+     Like the sound effects it is optional: a missing file or a blocked
+     play() never affects the game.
+     --------------------------------------------------------------------- */
+  const musicEl = $("music");
+  let musicFadeTimer = null;
+  let musicWanted = false;   // true between opening the journal and returning
+
+  function fadeMusicTo(targetVolume, durationMs, onDone) {
+    if (!musicEl) return;
+    clearInterval(musicFadeTimer);
+    const stepMs = 50;
+    const steps = Math.max(1, Math.round(durationMs / stepMs));
+    const startVolume = musicEl.volume;
+    let step = 0;
+    musicFadeTimer = setInterval(() => {
+      step++;
+      const volume = startVolume + (targetVolume - startVolume) * (step / steps);
+      musicEl.volume = Math.min(1, Math.max(0, volume));
+      if (step >= steps) {
+        clearInterval(musicFadeTimer);
+        if (onDone) onDone();
+      }
+    }, stepMs);
+  }
+
+  // Called from the first click on the journal, so the browser allows it.
+  function startMusic() {
+    if (!musicEl || !GAME_CONFIG.musicVolume) return;
+    musicWanted = true;
+    try {
+      musicEl.volume = 0;
+      const playing = musicEl.play();
+      if (playing && playing.catch) playing.catch(() => {});
+      fadeMusicTo(GAME_CONFIG.musicVolume, 1500);
+    } catch (e) { /* never let audio break the game */ }
+  }
+
+  function stopMusic() {
+    if (!musicEl) return;
+    musicWanted = false;
+    fadeMusicTo(0, 900, () => {
+      musicEl.pause();
+      musicEl.currentTime = 0;
+    });
+  }
+
+  // Don't keep playing behind PowerPoint when the browser tab is hidden
+  // or minimised; pick the melody up again when it comes back.
+  function onVisibilityChange() {
+    if (!musicEl || !musicWanted) return;
+    if (document.hidden) {
+      musicEl.pause();
+    } else {
+      const playing = musicEl.play();
+      if (playing && playing.catch) playing.catch(() => {});
+    }
+  }
+
+  /* ---------------------------------------------------------------------
      TEXT FITTING
      Shrinks the font (in cqw of the journal) until the text fits its box
      and uses at most `maxLines` lines. Because everything is in cqw, the
@@ -447,6 +507,7 @@
     setState(STATES.UNLOCKING);
     hintEl.classList.remove("visible");
     closedBtn.classList.add("is-busy");
+    startMusic();
 
     // Lock clicks: a quick glint and a tiny nudge of the whole book.
     playSound("sfx-unlock", 0.55);
@@ -673,6 +734,7 @@
      --------------------------------------------------------------------- */
   function returnToJourney() {
     if (state !== STATES.COMPLETE) return;
+    stopMusic();
     if (GAME_CONFIG.returnUrl) {
       window.location.href = GAME_CONFIG.returnUrl;
       return;
@@ -708,6 +770,7 @@
     returnTag.addEventListener("click", returnToJourney);
     memoryNextTab.addEventListener("click", turnToFinalSpread);
     memoryNextArea.addEventListener("click", turnToFinalSpread);
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     // Texts of the finale come from questions.js.
     const { wish } = FINAL_SCENE;
